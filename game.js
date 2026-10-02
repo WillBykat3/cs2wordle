@@ -66,6 +66,8 @@ if (typeof document !== "undefined") {
   let toastTimer = null;
 
   function pickAnswer() {
+    // A page can lock the answer by setting window.FIXED_ANSWER first.
+    if (window.FIXED_ANSWER) return window.FIXED_ANSWER;
     let next;
     do {
       next = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];

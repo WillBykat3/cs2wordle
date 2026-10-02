@@ -19,3 +19,10 @@ Open `index.html` in a browser. No build step or server needed.
 Edit the `ANSWERS` list at the top of `game.js`. `MAX_GUESSES` and
 `MAX_LENGTH` are right below it. Keep `MAX_LENGTH` above your longest answer
 so the cap doesn't give the length away.
+
+## Secret page
+
+`secret/index.html` is the same game with the answer locked to `CS250`. It
+shares `game.js` and `style.css` with the main page and sets
+`window.FIXED_ANSWER` before loading the game. Note that anyone who views the
+page source can see the answer.
