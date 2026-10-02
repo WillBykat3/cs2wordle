@@ -1,0 +1,173 @@
+:root {
+  --bg: #121213;
+  --fg: #f8f8f8;
+  --muted: #818384;
+  --border: #3a3a3c;
+  --border-filled: #565758;
+  --correct: #538d4e;
+  --present: #b59f3b;
+  --absent: #3a3a3c;
+  --key: #818384;
+  --gap: 4px;
+  /* Overridden on #board by game.js to fit the widest row. */
+  --tile: 52px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0 16px 16px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
+
+header {
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 0;
+}
+
+h1 { margin: 0; font-size: 1.8rem; letter-spacing: 0.05em; }
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+#new-game {
+  background: var(--correct);
+  color: var(--fg);
+  border: 0;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-weight: 600;
+}
+
+.help {
+  max-width: 720px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.legend { white-space: nowrap; margin: 0 6px; }
+.legend .tile {
+  --tile: 1.4em;
+  display: inline-flex;
+  font-size: 0.8rem;
+  vertical-align: middle;
+}
+
+#toast {
+  min-height: 2.2em;
+  font-weight: 600;
+  text-align: center;
+}
+#toast:not(:empty) {
+  background: var(--fg);
+  color: var(--bg);
+  border-radius: 4px;
+  padding: 6px 12px;
+}
+
+#board {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  margin: 8px 0 16px;
+  width: 100%;
+  align-items: center;
+}
+
+.row {
+  display: flex;
+  gap: var(--gap);
+  min-height: var(--tile);
+}
+
+.tile {
+  width: var(--tile);
+  height: var(--tile);
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: calc(var(--tile) * 0.55);
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.tile.filled { border-color: var(--border-filled); }
+.tile.cursor { border-style: dashed; }
+.tile.future { border-style: dotted; opacity: 0.5; }
+.tile.pop { animation: pop 0.1s ease-out; }
+
+.tile.correct, .tile.present, .tile.absent { border-color: transparent; }
+.tile.correct { background: var(--correct); }
+.tile.present { background: var(--present); }
+.tile.absent  { background: var(--absent); }
+
+.tile.reveal { animation: flip 0.4s ease both; }
+
+.row.shake { animation: shake 0.4s; }
+
+@keyframes pop {
+  from { transform: scale(0.8); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+@keyframes flip {
+  0%   { transform: rotateX(90deg); }
+  100% { transform: rotateX(0); }
+}
+@keyframes shake {
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+#keyboard {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: auto;
+}
+
+.kb-row {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.key {
+  flex: 1;
+  min-width: 0;
+  height: 52px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--key);
+  color: var(--fg);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+}
+.key.wide { flex: 1.6; font-size: 0.7rem; }
+.key.correct { background: var(--correct); }
+.key.present { background: var(--present); }
+.key.absent  { background: var(--absent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .tile.pop, .tile.reveal, .row.shake { animation: none; }
+}

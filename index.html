@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CS2Wordle</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>CS2Wordle</h1>
+    <button id="new-game" type="button">New game</button>
+  </header>
+
+  <p class="help">
+    Guess the mystery word. You don't know how long it is: a new box appears
+    every time you type. Letters and numbers both count.
+    <span class="legend"><span class="tile correct">A</span> right spot</span>
+    <span class="legend"><span class="tile present">A</span> wrong spot</span>
+    <span class="legend"><span class="tile absent">A</span> not in it</span>
+  </p>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <main id="board" aria-label="Guesses"></main>
+
+  <div id="keyboard" aria-label="Keyboard"></div>
+
+  <script src="game.js"></script>
+</body>
+</html>
