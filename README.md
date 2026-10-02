@@ -26,3 +26,10 @@ so the cap doesn't give the length away.
 shares `game.js` and `style.css` with the main page and sets
 `window.FIXED_ANSWER` before loading the game. Note that anyone who views the
 page source can see the answer.
+
+## Updating the game
+
+Browsers keep their saved copy of `game.js` and `style.css` for about 10
+minutes. When you change either file, bump the `?v=` number where both
+`index.html` and `secret/index.html` load them, so players get the new
+version straight away.
