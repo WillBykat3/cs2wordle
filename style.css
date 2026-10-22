@@ -11,10 +11,6 @@
   --gap: 4px;
   /* Overridden on #board by game.js to fit the widest row. */
   --tile: 52px;
-  /* Tallest box that still fits all 8 guess rows plus the header, help
-     text and keyboard (--chrome, measured) on one screen. */
-  --chrome: 480px;
-  --tile-h: max(20px, calc((100vh - var(--chrome)) / 8 - var(--gap)));
 }
 
 * { box-sizing: border-box; }
@@ -28,8 +24,12 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 100vh;
+  /* One screen tall: the board scrolls, the keyboard stays visible. */
+  height: 100vh;
+  height: 100dvh;
 }
+
+header, .help, #toast, #keyboard { flex-shrink: 0; }
 
 header {
   width: 100%;
@@ -49,10 +49,6 @@ button {
 }
 
 #date { color: var(--muted); font-weight: 600; }
-
-@supports (height: 100dvh) {
-  :root { --tile-h: max(20px, calc((100dvh - var(--chrome)) / 8 - var(--gap))); }
-}
 
 .help {
   max-width: 720px;
@@ -89,12 +85,17 @@ button {
   margin: 8px 0 16px;
   width: 100%;
   align-items: center;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .row {
   display: flex;
   gap: var(--gap);
   min-height: var(--tile);
+  flex-shrink: 0;
 }
 
 .tile {
@@ -111,7 +112,6 @@ button {
 }
 
 .tile.filled { border-color: var(--border-filled); }
-.tile.prefix { color: var(--muted); }
 .tile.cursor { border-style: dashed; }
 .tile.future { border-style: dotted; opacity: 0.5; }
 .tile.pop { animation: pop 0.1s ease-out; }
@@ -172,7 +172,6 @@ button {
 
 /* Short phones: a shorter keyboard leaves more room for the board. */
 @media (max-height: 700px) {
-  :root { --chrome: 448px; }
   .key { height: 44px; }
 }
 

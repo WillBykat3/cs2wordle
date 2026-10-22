@@ -3,7 +3,7 @@
 
 const PREFIX = "CS2";
 const MAX_GUESSES = 8;
-// Total characters including the prefix. Longer than any answer
+// Total characters including CS2. Longer than any answer
 // (CS2 + up to 9 letters), so the cap doesn't give the length away.
 const MAX_LENGTH = 14;
 const STORAGE_KEY = "cs2wordle-daily";
@@ -159,7 +159,7 @@ if (typeof document !== "undefined") {
     );
     boardEl.style.setProperty(
       "--tile",
-      `min(52px, var(--tile-h), calc((100vw - 32px - ${widest - 1} * var(--gap)) / ${widest}))`
+      `min(52px, calc((100vw - 32px - ${widest - 1} * var(--gap)) / ${widest}))`
     );
 
     guesses.forEach((g, r) => {
@@ -181,7 +181,7 @@ if (typeof document !== "undefined") {
       // Current row: the fixed prefix, typed letters, then one empty box.
       const row = document.createElement("div");
       row.className = "row current";
-      for (const ch of PREFIX) row.appendChild(tile(ch, "filled prefix"));
+      for (const ch of PREFIX) row.appendChild(tile(ch, "correct"));
       [...current].forEach((ch, i) => {
         const t = tile(ch, "filled");
         if (anim === "add" && i === current.length - 1) t.classList.add("pop");
@@ -204,6 +204,10 @@ if (typeof document !== "undefined") {
     }
 
     renderKeyboard();
+
+    // Keep the row being typed (or the final row) in view.
+    const focusRow = boardEl.querySelector(".row.current") || boardEl.lastElementChild;
+    if (focusRow) focusRow.scrollIntoView({ block: "nearest" });
   }
 
   function renderKeyboard() {
