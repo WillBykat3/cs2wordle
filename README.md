@@ -11,6 +11,11 @@ as many boxes as the day's answer, like normal Wordle.
   normal Wordle rules).
 - 8 guesses. A guess has to fill every box.
 - Progress is saved in the browser, so refreshing doesn't reset the day.
+- A "How to play" popup opens on a player's first visit and from the `?`
+  button. After the game, a card shows the result and a countdown to the next
+  word.
+- Fonts are Chakra Petch (logo, tiles, keys) and Barlow (text), loaded from
+  Google Fonts, with system fonts as a fallback.
 
 ## Play
 
@@ -38,7 +43,7 @@ They were chosen like this:
 
 To change a day's word, edit it in `words.js`. Keep it to letters only.
 Shorter words get bigger boxes: a 9-letter word makes 12 boxes, which are
-about 24px wide on a small phone.
+about 23px wide on a small phone.
 
 ## Secret page
 

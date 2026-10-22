@@ -1,178 +1,390 @@
+/* Layout: one screen tall. Header on top, the board in the middle (it
+   scrolls when the rows don't fit), the keyboard pinned to the bottom.
+   Deliberately dark only, like CS2's own menus. */
 :root {
-  --bg: #121213;
-  --fg: #f8f8f8;
-  --muted: #818384;
-  --border: #3a3a3c;
-  --border-filled: #565758;
-  --correct: #538d4e;
-  --present: #b59f3b;
-  --absent: #3a3a3c;
-  --key: #818384;
-  --gap: 4px;
+  color-scheme: dark;
+  --bg: #0b0e13;
+  --glow: rgba(61, 154, 80, 0.16);
+  --surface: #151a22;
+  --surface-2: #1c232d;
+  --line: #29313c;
+  --line-strong: #4a5563;
+  --fg: #eef2f6;
+  --muted: #8e98a6;
+  --correct: #3d9a50;
+  --present: #c9a227;
+  --absent: #262d36;
+  --key: #2e3642;
+  --key-hover: #3a4451;
+
+  --display: "Chakra Petch", "Rajdhani", "Segoe UI", system-ui, sans-serif;
+  --body: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --gap: 5px;
   /* Overridden on #board by game.js to fit the widest row. */
-  --tile: 52px;
+  --tile: 56px;
 }
 
 * { box-sizing: border-box; }
 
+html { background: var(--bg); }
+
 body {
   margin: 0;
-  padding: 0 16px 16px;
-  background: var(--bg);
+  padding: env(safe-area-inset-top, 0px) 16px 0;
+  background:
+    radial-gradient(120% 50% at 50% -10%, var(--glow), transparent 70%),
+    var(--bg);
   color: var(--fg);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--body);
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* One screen tall: the board scrolls, the keyboard stays visible. */
   height: 100vh;
   height: 100dvh;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
-header, .help, #toast, #keyboard { flex-shrink: 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--correct); outline-offset: 2px; }
 
-header {
+/* ---------- Header ---------- */
+
+.top {
+  flex-shrink: 0;
   width: 100%;
-  max-width: 720px;
+  max-width: 560px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--border);
-  padding: 8px 0;
+  gap: 12px;
+  padding: 12px 0 10px;
+  border-bottom: 1px solid var(--line);
 }
 
-h1 { margin: 0; font-size: 1.8rem; letter-spacing: 0.05em; }
-
-button {
-  font: inherit;
-  cursor: pointer;
+.brand {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.6rem;
+  letter-spacing: 0.02em;
 }
 
-#date { color: var(--muted); font-weight: 600; }
+.brand-tag {
+  background: var(--correct);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0 8px;
+  line-height: 1.35;
+}
 
-.help {
-  max-width: 720px;
+.top-actions { display: flex; align-items: center; gap: 8px; }
+
+.chip {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--muted);
-  font-size: 0.9rem;
-  text-align: center;
-  line-height: 1.6;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 12px;
 }
 
-.legend { white-space: nowrap; margin: 0 6px; }
-.legend .tile {
-  --tile: 1.4em;
-  display: inline-flex;
-  font-size: 0.8rem;
-  vertical-align: middle;
+.icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s;
 }
+
+/* ---------- Toast ---------- */
 
 #toast {
-  min-height: 2.2em;
-  font-weight: 600;
-  text-align: center;
-}
-#toast:not(:empty) {
+  position: fixed;
+  z-index: 10;
+  top: calc(env(safe-area-inset-top, 0px) + 72px);
+  left: 50%;
+  transform: translate(-50%, -8px);
+  opacity: 0;
+  pointer-events: none;
   background: var(--fg);
   color: var(--bg);
-  border-radius: 4px;
-  padding: 6px 12px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 8px 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  transition: opacity 0.2s, transform 0.2s;
+  white-space: nowrap;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- Result card ---------- */
+
+.result {
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 420px;
+  margin-top: 12px;
+  padding: 12px 16px;
+  display: grid;
+  gap: 2px;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--correct);
+  border-radius: 14px;
+  animation: rise 0.35s ease-out both;
+}
+.result[hidden] { display: none; }
+.result.lost { border-top-color: var(--line-strong); }
+.result p { margin: 0; }
+
+.result-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: 0.02em;
+  color: var(--correct);
+}
+.result.lost .result-title { color: var(--fg); }
+
+.result-msg { font-weight: 500; }
+
+.result-next { color: var(--muted); font-size: 0.9rem; }
+#countdown {
+  font-family: var(--display);
+  font-weight: 600;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
 }
 
+/* ---------- Board ---------- */
+
 #board {
-  display: flex;
-  flex-direction: column;
-  gap: var(--gap);
-  margin: 8px 0 16px;
-  width: 100%;
-  align-items: center;
   flex: 1 1 auto;
   min-height: 0;
+  width: 100%;
   overflow-x: hidden;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap);
+  padding: 14px 0;
 }
+/* Soft fade at the edges when the rows have to scroll. */
+#board {
+  -webkit-mask-image: linear-gradient(transparent, #000 12px, #000 calc(100% - 12px), transparent);
+  mask-image: linear-gradient(transparent, #000 12px, #000 calc(100% - 12px), transparent);
+}
+/* Centre the rows vertically when they fit, without breaking scrolling. */
+#board::before, #board::after { content: ""; flex: 1 0 0; }
 
 .row {
   display: flex;
   gap: var(--gap);
-  min-height: var(--tile);
   flex-shrink: 0;
 }
 
 .tile {
   width: var(--tile);
   height: var(--tile);
-  border: 2px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
+  border-radius: calc(var(--tile) * 0.18);
+  border: 2px solid var(--line);
+  font-family: var(--display);
   font-weight: 700;
-  font-size: calc(var(--tile) * 0.55);
+  font-size: calc(var(--tile) * 0.5);
+  line-height: 1;
   text-transform: uppercase;
   user-select: none;
 }
 
-.tile.filled { border-color: var(--border-filled); }
-.tile.pop { animation: pop 0.1s ease-out; }
+.tile.filled { border-color: var(--line-strong); background: var(--surface-2); }
 
-.tile.correct, .tile.present, .tile.absent { border-color: transparent; }
+.tile.correct, .tile.present, .tile.absent {
+  border-color: transparent;
+  color: #fff;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.2);
+}
 .tile.correct { background: var(--correct); }
 .tile.present { background: var(--present); }
-.tile.absent  { background: var(--absent); }
+.tile.absent  { background: var(--absent); color: #c6ccd4; }
 
-.tile.reveal { animation: flip 0.4s ease both; }
-
+.tile.pop { animation: pop 0.12s ease-out; }
+.tile.reveal { animation: flip 0.45s ease both; }
+.tile.reveal.win {
+  animation-name: flip, hop;
+  animation-duration: 0.45s, 0.5s;
+  animation-timing-function: ease, ease;
+  animation-fill-mode: both, none;
+}
 .row.shake { animation: shake 0.4s; }
 
+/* ---------- Keyboard ---------- */
+
+#keyboard {
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 6px 0 calc(12px + env(safe-area-inset-bottom, 0px));
+}
+
+.kb-row { display: flex; gap: 5px; justify-content: center; }
+
+.key {
+  flex: 1;
+  min-width: 0;
+  height: 54px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: var(--key);
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s, transform 0.08s;
+  touch-action: manipulation;
+}
+.key:active { transform: scale(0.94); }
+.kb-row:first-child .key { height: 42px; font-size: 0.95rem; }
+.key.wide { flex: 1.5; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.key.correct { background: var(--correct); }
+.key.present { background: var(--present); }
+.key.absent  { background: var(--absent); color: #7d8794; }
+
+@media (hover: hover) {
+  .key:hover, .icon-btn:hover { background: var(--key-hover); }
+  .key.correct:hover { background: var(--correct); filter: brightness(1.1); }
+  .key.present:hover { background: var(--present); filter: brightness(1.1); }
+  .key.absent:hover  { background: var(--absent); }
+}
+
+/* Narrow phones: keep the ENTER label from clipping. */
+@media (max-width: 400px) {
+  .key.wide { font-size: 0.7rem; letter-spacing: 0.02em; }
+}
+
+/* Short phones: a shorter keyboard leaves more room for the board. */
+@media (max-height: 700px) {
+  .key { height: 46px; }
+  .kb-row:first-child .key { height: 36px; }
+  .top { padding: 8px 0 6px; }
+}
+
+/* ---------- How-to-play dialog ---------- */
+
+#help {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--fg);
+  width: min(420px, calc(100vw - 32px));
+  max-width: none;
+}
+#help::backdrop { background: rgba(4, 6, 9, 0.72); backdrop-filter: blur(4px); }
+#help[open] .help-card { animation: rise 0.25s ease-out both; }
+
+.help-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 20px;
+  display: grid;
+  gap: 14px;
+  line-height: 1.5;
+}
+.help-card p { margin: 0; }
+
+.help-head { display: flex; align-items: center; justify-content: space-between; }
+.help-head h2 {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.35rem;
+  letter-spacing: 0.02em;
+}
+
+.help-examples { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.help-examples li { display: flex; align-items: center; gap: 12px; }
+
+.mini {
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  font-family: var(--display);
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.mini.correct { background: var(--correct); }
+.mini.present { background: var(--present); }
+.mini.absent  { background: var(--absent); color: #c6ccd4; }
+
+.help-foot { color: var(--muted); font-size: 0.9rem; }
+
+.primary-btn {
+  border: 0;
+  border-radius: 12px;
+  padding: 12px;
+  background: var(--correct);
+  color: #fff;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: filter 0.15s;
+}
+.primary-btn:hover { filter: brightness(1.1); }
+
+/* ---------- Motion ---------- */
+
 @keyframes pop {
-  from { transform: scale(0.8); opacity: 0; }
-  to   { transform: scale(1); opacity: 1; }
+  from { transform: scale(0.85); }
+  60%  { transform: scale(1.08); }
+  to   { transform: scale(1); }
 }
 @keyframes flip {
   0%   { transform: rotateX(90deg); }
   100% { transform: rotateX(0); }
 }
+@keyframes hop {
+  0%, 100% { transform: translateY(0); }
+  40%      { transform: translateY(-28%); }
+  70%      { transform: translateY(4%); }
+}
 @keyframes shake {
   20%, 60% { transform: translateX(-6px); }
   40%, 80% { transform: translateX(6px); }
 }
-
-#keyboard {
-  width: 100%;
-  max-width: 520px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: auto;
-}
-
-.kb-row {
-  display: flex;
-  gap: 4px;
-  justify-content: center;
-}
-
-.key {
-  flex: 1;
-  min-width: 0;
-  height: 52px;
-  border: 0;
-  border-radius: 4px;
-  background: var(--key);
-  color: var(--fg);
-  font-weight: 700;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-}
-.key.wide { flex: 1.6; font-size: 0.7rem; }
-.key.correct { background: var(--correct); }
-.key.present { background: var(--present); }
-.key.absent  { background: var(--absent); }
-
-/* Short phones: a shorter keyboard leaves more room for the board. */
-@media (max-height: 700px) {
-  .key { height: 44px; }
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tile.pop, .tile.reveal, .row.shake { animation: none; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
 }
