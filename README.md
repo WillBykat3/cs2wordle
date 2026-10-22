@@ -14,8 +14,8 @@ as many boxes as the day's answer, like normal Wordle.
 - A "How to play" popup opens on a player's first visit and from the `?`
   button. After the game, a card shows the result and a countdown to the next
   word.
-- Fonts are Chakra Petch (logo, tiles, keys) and Barlow (text), loaded from
-  Google Fonts, with system fonts as a fallback.
+- Calm, minimal look in the Outfit font (from Google Fonts, with system
+  fonts as a fallback). It follows the device's light or dark setting.
 
 ## Play
 
