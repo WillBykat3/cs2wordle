@@ -11,6 +11,10 @@
   --gap: 4px;
   /* Overridden on #board by game.js to fit the widest row. */
   --tile: 52px;
+  /* Tallest box that still fits all 8 guess rows plus the header, help
+     text and keyboard (--chrome, measured) on one screen. */
+  --chrome: 480px;
+  --tile-h: max(20px, calc((100vh - var(--chrome)) / 8 - var(--gap)));
 }
 
 * { box-sizing: border-box; }
@@ -44,13 +48,10 @@ button {
   cursor: pointer;
 }
 
-#new-game {
-  background: var(--correct);
-  color: var(--fg);
-  border: 0;
-  border-radius: 4px;
-  padding: 8px 12px;
-  font-weight: 600;
+#date { color: var(--muted); font-weight: 600; }
+
+@supports (height: 100dvh) {
+  :root { --tile-h: max(20px, calc((100dvh - var(--chrome)) / 8 - var(--gap))); }
 }
 
 .help {
@@ -110,6 +111,7 @@ button {
 }
 
 .tile.filled { border-color: var(--border-filled); }
+.tile.prefix { color: var(--muted); }
 .tile.cursor { border-style: dashed; }
 .tile.future { border-style: dotted; opacity: 0.5; }
 .tile.pop { animation: pop 0.1s ease-out; }
@@ -167,6 +169,12 @@ button {
 .key.correct { background: var(--correct); }
 .key.present { background: var(--present); }
 .key.absent  { background: var(--absent); }
+
+/* Short phones: a shorter keyboard leaves more room for the board. */
+@media (max-height: 700px) {
+  :root { --chrome: 448px; }
+  .key { height: 44px; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .tile.pop, .tile.reveal, .row.shake { animation: none; }

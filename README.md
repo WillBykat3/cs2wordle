@@ -1,35 +1,57 @@
 # CS2Wordle
 
-A Wordle-style guessing game where you don't know how long the answer is.
-The board starts with a single empty box, and a new one appears each time
-you type.
+A daily Wordle-style guessing game. Every answer starts with "CS2", which is
+already filled in, and you guess the rest. You don't know how long the answer
+is: a new box appears each time you type.
 
-- Letters and numbers both count; case doesn't matter.
+- One word per calendar day, based on the player's own date. The same date
+  gets the same word every year.
 - Green means right character in the right spot, yellow means it's in the
   answer somewhere else, grey means it's not in it (repeated letters follow
   normal Wordle rules).
-- 8 guesses, up to 12 characters per guess.
+- 8 guesses, up to 14 characters per guess including CS2.
+- Progress is saved in the browser, so refreshing doesn't reset the day.
 
 ## Play
 
-Open `index.html` in a browser. No build step or server needed.
+Open `index.html` in a browser, or visit the GitHub Pages site. No build step
+or server needed.
 
-## Changing the answers
+## The word list
 
-Edit the `ANSWERS` list at the top of `game.js`. `MAX_GUESSES` and
-`MAX_LENGTH` are right below it. Keep `MAX_LENGTH` above your longest answer
-so the cap doesn't give the length away.
+`words.js` holds 366 adjectives, one per day (index 59 is February 29, only
+used in leap years). Each answer is "CS2" plus the day's word, e.g.
+`shifty` becomes CS2Shifty.
+
+They were chosen like this:
+
+1. Hand-picked adjectives that work as a name after "CS2", each confirmed to
+   be in the adjective list from
+   [taikuukaits/SimpleWordlists](https://github.com/taikuukaits/SimpleWordlists)
+   (`Wordlist-Adjectives-All.txt`).
+2. Ranked by how common they are in everyday speech, using
+   [hermitdave/FrequencyWords](https://github.com/hermitdave/FrequencyWords)
+   (`en_50k.txt`, built from film subtitles), and the 362 most common kept.
+3. Added the four words from the original answers: shifty, shitty, smelly
+   and zesty.
+4. Shuffled into a fixed random order so the calendar isn't predictable.
+
+To change a day's word, edit it in `words.js`. Keep it to letters only, and
+at most 11 letters, so it stays under the 14-character limit and the cap
+doesn't give the length away.
 
 ## Secret page
 
-`secret/index.html` is the same game with the answer locked to `CS250`. It
-shares `game.js` and `style.css` with the main page and sets
-`window.FIXED_ANSWER` before loading the game. Note that anyone who views the
-page source can see the answer.
+`secret/index.html` looks identical to the main page, but the answer is
+always `CS250` (CS2 is filled in, so you type `50`). It shares the main
+page's files and sets `window.FIXED_ANSWER` before loading the game. It
+doesn't save progress, so it starts fresh on every visit, and it never
+touches the main game's saved progress. Anyone who views the page source can
+see the answer.
 
 ## Updating the game
 
-Browsers keep their saved copy of `game.js` and `style.css` for about 10
-minutes. When you change either file, bump the `?v=` number where both
-`index.html` and `secret/index.html` load them, so players get the new
+Browsers keep their saved copy of `words.js`, `game.js` and `style.css` for
+about 10 minutes. When you change any of them, bump the `?v=` number where
+both `index.html` and `secret/index.html` load them, so players get the new
 version straight away.

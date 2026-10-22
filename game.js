@@ -1,16 +1,12 @@
-// CS2Wordle — a Wordle-style game where the answer length is hidden.
+// CS2Wordle — a daily Wordle-style game where the answer length is hidden.
+// Every answer starts with "CS2", which is already filled in.
 
-const ANSWERS = [
-  "CS250",
-  "CS2Shifty",
-  "CS2Shitty",
-  "ZestyCS",
-  "CS2Smelly",
-];
-
+const PREFIX = "CS2";
 const MAX_GUESSES = 8;
-// Longer than any answer, so the cap doesn't give the length away.
-const MAX_LENGTH = 12;
+// Total characters including the prefix. Longer than any answer
+// (CS2 + up to 9 letters), so the cap doesn't give the length away.
+const MAX_LENGTH = 14;
+const STORAGE_KEY = "cs2wordle-daily";
 
 // Score a guess against the answer (both already upper-cased).
 // Lengths may differ. Returns one of "correct" | "present" | "absent" per
@@ -39,15 +35,36 @@ function scoreGuess(guess, answer) {
   return result;
 }
 
+// Position of a calendar date in the word list, counting days as if every
+// year were a leap year, so each date keeps the same word every year.
+function dayIndex(date) {
+  const start = Date.UTC(2000, 0, 1);
+  const day = Date.UTC(2000, date.getMonth(), date.getDate());
+  return Math.round((day - start) / 86400000);
+}
+
+function dailyAnswer(date, words) {
+  const w = words[dayIndex(date)];
+  return PREFIX + w[0].toUpperCase() + w.slice(1);
+}
+
+function dateKey(date) {
+  return [date.getFullYear(), date.getMonth() + 1, date.getDate()].join("-");
+}
+
 if (typeof module !== "undefined") {
-  module.exports = { ANSWERS, MAX_GUESSES, MAX_LENGTH, scoreGuess };
+  module.exports = { PREFIX, MAX_GUESSES, MAX_LENGTH, scoreGuess, dayIndex, dailyAnswer };
 }
 
 if (typeof document !== "undefined") {
   const boardEl = document.getElementById("board");
   const keyboardEl = document.getElementById("keyboard");
   const toastEl = document.getElementById("toast");
-  const newGameBtn = document.getElementById("new-game");
+  const dateEl = document.getElementById("date");
+
+  // A page can lock the answer by setting window.FIXED_ANSWER first.
+  // Such a page doesn't save progress, so it starts fresh on every visit.
+  const fixedAnswer = window.FIXED_ANSWER || null;
 
   const KEY_ROWS = [
     "1234567890".split(""),
@@ -57,40 +74,69 @@ if (typeof document !== "undefined") {
   ];
   const RANK = { absent: 1, present: 2, correct: 3 };
 
+  let today = "";
   let answer = "";
   let answerDisplay = "";
-  let guesses = []; // [{ text, score }]
-  let current = "";
+  let guesses = []; // [{ text, score }], text includes the prefix
+  let current = ""; // what the player typed after the prefix
   let over = false;
   let keyStatus = {};
-  let toastTimer = null;
 
-  function pickAnswer() {
-    // A page can lock the answer by setting window.FIXED_ANSWER first.
-    if (window.FIXED_ANSWER) return window.FIXED_ANSWER;
-    let next;
-    do {
-      next = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
-    } while (ANSWERS.length > 1 && next === answerDisplay);
-    return next;
+  function load() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (saved && saved.date === today && Array.isArray(saved.guesses)) return saved.guesses;
+    } catch (e) {}
+    return [];
   }
 
-  function newGame() {
-    answerDisplay = pickAnswer();
+  function save() {
+    if (fixedAnswer) return;
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ date: today, guesses: guesses.map((g) => g.text) })
+      );
+    } catch (e) {}
+  }
+
+  function startDay() {
+    const now = new Date();
+    today = dateKey(now);
+    answerDisplay = fixedAnswer || dailyAnswer(now, DAILY_WORDS);
     answer = answerDisplay.toUpperCase();
+    dateEl.textContent = now.toLocaleDateString(undefined, { month: "long", day: "numeric" });
+
     guesses = [];
     current = "";
     over = false;
     keyStatus = {};
     showToast("");
+    for (const text of fixedAnswer ? [] : load()) record(String(text).toUpperCase());
     render();
-    newGameBtn.blur();
   }
 
-  function showToast(msg, ms) {
-    clearTimeout(toastTimer);
+  function showToast(msg) {
     toastEl.textContent = msg;
-    if (msg && ms) toastTimer = setTimeout(() => (toastEl.textContent = ""), ms);
+  }
+
+  // Add a guess to the board and work out whether the game is over.
+  function record(text) {
+    if (over) return;
+    const score = scoreGuess(text, answer);
+    guesses.push({ text, score });
+    // Colour the keyboard from what the player typed, not the fixed prefix.
+    for (let i = PREFIX.length; i < text.length; i++) {
+      const ch = text[i];
+      if ((RANK[score[i]] || 0) > (RANK[keyStatus[ch]] || 0)) keyStatus[ch] = score[i];
+    }
+    if (text === answer) {
+      over = true;
+      showToast(`You got it in ${guesses.length}! It was ${answerDisplay}. New word tomorrow.`);
+    } else if (guesses.length >= MAX_GUESSES) {
+      over = true;
+      showToast(`Out of guesses. It was ${answerDisplay}. New word tomorrow.`);
+    }
   }
 
   function tile(ch, cls) {
@@ -108,12 +154,12 @@ if (typeof document !== "undefined") {
     // what the player typed, never on the answer.
     const widest = Math.max(
       6,
-      over ? 0 : Math.min(current.length + 1, MAX_LENGTH),
+      over ? 0 : Math.min(PREFIX.length + current.length + 1, MAX_LENGTH),
       ...guesses.map((g) => g.text.length)
     );
     boardEl.style.setProperty(
       "--tile",
-      `min(52px, calc((100vw - 32px - ${widest - 1} * var(--gap)) / ${widest}))`
+      `min(52px, var(--tile-h), calc((100vw - 32px - ${widest - 1} * var(--gap)) / ${widest}))`
     );
 
     guesses.forEach((g, r) => {
@@ -124,7 +170,7 @@ if (typeof document !== "undefined") {
         const t = tile(ch, g.score[i]);
         if (revealing) {
           t.classList.add("reveal");
-          t.style.animationDelay = i * 120 + "ms";
+          t.style.animationDelay = i * 100 + "ms";
         }
         row.appendChild(t);
       });
@@ -132,15 +178,16 @@ if (typeof document !== "undefined") {
     });
 
     if (!over) {
-      // Current row: typed letters plus one empty box for the next letter.
+      // Current row: the fixed prefix, typed letters, then one empty box.
       const row = document.createElement("div");
       row.className = "row current";
+      for (const ch of PREFIX) row.appendChild(tile(ch, "filled prefix"));
       [...current].forEach((ch, i) => {
         const t = tile(ch, "filled");
         if (anim === "add" && i === current.length - 1) t.classList.add("pop");
         row.appendChild(t);
       });
-      if (current.length < MAX_LENGTH) {
+      if (PREFIX.length + current.length < MAX_LENGTH) {
         const t = tile("", "cursor");
         if (anim === "add") t.classList.add("pop");
         row.appendChild(t);
@@ -192,7 +239,7 @@ if (typeof document !== "undefined") {
   }
 
   function addChar(ch) {
-    if (over || current.length >= MAX_LENGTH) return;
+    if (over || PREFIX.length + current.length >= MAX_LENGTH) return;
     current += ch;
     render("add");
   }
@@ -206,26 +253,14 @@ if (typeof document !== "undefined") {
   function submit() {
     if (over) return;
     if (!current) {
-      showToast("Type something first", 1500);
+      showToast("Type the rest of the word after CS2");
+      setTimeout(() => !over && toastEl.textContent.startsWith("Type") && showToast(""), 1500);
       shakeCurrentRow();
       return;
     }
-
-    const score = scoreGuess(current, answer);
-    guesses.push({ text: current, score });
-    [...current].forEach((ch, i) => {
-      if ((RANK[score[i]] || 0) > (RANK[keyStatus[ch]] || 0)) keyStatus[ch] = score[i];
-    });
-
-    const won = current === answer;
+    record(PREFIX + current);
     current = "";
-    if (won) {
-      over = true;
-      showToast(`You got it in ${guesses.length}! It was ${answerDisplay}.`);
-    } else if (guesses.length >= MAX_GUESSES) {
-      over = true;
-      showToast(`Out of guesses. It was ${answerDisplay}.`);
-    }
+    save();
     render("reveal");
   }
 
@@ -255,7 +290,10 @@ if (typeof document !== "undefined") {
     }
   });
 
-  newGameBtn.addEventListener("click", newGame);
+  // If the page stays open past midnight, switch to the new day's word.
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && dateKey(new Date()) !== today) startDay();
+  });
 
-  newGame();
+  startDay();
 }
