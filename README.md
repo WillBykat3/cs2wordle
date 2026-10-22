@@ -1,15 +1,15 @@
 # CS2Wordle
 
 A daily Wordle-style guessing game. Every answer starts with "CS2", which is
-already filled in, and you guess the rest. You don't know how long the answer
-is: a new box appears each time you type.
+already filled in (in green), and you fill in the rest. Each row has exactly
+as many boxes as the day's answer, like normal Wordle.
 
 - One word per calendar day, based on the player's own date. The same date
   gets the same word every year.
 - Green means right character in the right spot, yellow means it's in the
   answer somewhere else, grey means it's not in it (repeated letters follow
   normal Wordle rules).
-- 8 guesses, up to 14 characters per guess including CS2.
+- 8 guesses. A guess has to fill every box.
 - Progress is saved in the browser, so refreshing doesn't reset the day.
 
 ## Play
@@ -36,14 +36,14 @@ They were chosen like this:
    and zesty.
 4. Shuffled into a fixed random order so the calendar isn't predictable.
 
-To change a day's word, edit it in `words.js`. Keep it to letters only, and
-at most 11 letters, so it stays under the 14-character limit and the cap
-doesn't give the length away.
+To change a day's word, edit it in `words.js`. Keep it to letters only.
+Shorter words get bigger boxes: a 9-letter word makes 12 boxes, which are
+about 24px wide on a small phone.
 
 ## Secret page
 
-`secret/index.html` looks identical to the main page, but the answer is
-always `CS250` (CS2 is filled in, so you type `50`). It shares the main
+`secret/index.html` looks like the main page, but the answer is always
+`CS250` (CS2 is filled in, so you type `50`), so its rows have 5 boxes. It shares the main
 page's files and sets `window.FIXED_ANSWER` before loading the game. It
 doesn't save progress, so it starts fresh on every visit, and it never
 touches the main game's saved progress. Anyone who views the page source can

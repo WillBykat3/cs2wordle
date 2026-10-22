@@ -1,11 +1,8 @@
-// CS2Wordle — a daily Wordle-style game where the answer length is hidden.
+// CS2Wordle — a daily Wordle-style game.
 // Every answer starts with "CS2", which is already filled in.
 
 const PREFIX = "CS2";
 const MAX_GUESSES = 8;
-// Total characters including CS2. Longer than any answer
-// (CS2 + up to 9 letters), so the cap doesn't give the length away.
-const MAX_LENGTH = 14;
 const STORAGE_KEY = "cs2wordle-daily";
 
 // Score a guess against the answer (both already upper-cased).
@@ -53,7 +50,7 @@ function dateKey(date) {
 }
 
 if (typeof module !== "undefined") {
-  module.exports = { PREFIX, MAX_GUESSES, MAX_LENGTH, scoreGuess, dayIndex, dailyAnswer };
+  module.exports = { PREFIX, MAX_GUESSES, scoreGuess, dayIndex, dailyAnswer };
 }
 
 if (typeof document !== "undefined") {
@@ -150,13 +147,8 @@ if (typeof document !== "undefined") {
   function render(anim) {
     boardEl.textContent = "";
 
-    // Size boxes so the longest row on screen fits. This depends only on
-    // what the player typed, never on the answer.
-    const widest = Math.max(
-      6,
-      over ? 0 : Math.min(PREFIX.length + current.length + 1, MAX_LENGTH),
-      ...guesses.map((g) => g.text.length)
-    );
+    // Size boxes so the longest row on screen fits.
+    const widest = Math.max(5, answer.length, ...guesses.map((g) => g.text.length));
     boardEl.style.setProperty(
       "--tile",
       `min(52px, calc((100vw - 32px - ${widest - 1} * var(--gap)) / ${widest}))`
@@ -178,7 +170,8 @@ if (typeof document !== "undefined") {
     });
 
     if (!over) {
-      // Current row: the fixed prefix, typed letters, then one empty box.
+      // Current row: the fixed prefix, typed letters, then empty boxes up
+      // to the answer's length.
       const row = document.createElement("div");
       row.className = "row current";
       for (const ch of PREFIX) row.appendChild(tile(ch, "correct"));
@@ -187,18 +180,16 @@ if (typeof document !== "undefined") {
         if (anim === "add" && i === current.length - 1) t.classList.add("pop");
         row.appendChild(t);
       });
-      if (PREFIX.length + current.length < MAX_LENGTH) {
-        const t = tile("", "cursor");
-        if (anim === "add") t.classList.add("pop");
-        row.appendChild(t);
+      for (let i = PREFIX.length + current.length; i < answer.length; i++) {
+        row.appendChild(tile("", "empty"));
       }
       boardEl.appendChild(row);
 
-      // Remaining guesses: a single placeholder each, so no length hint.
+      // Remaining guesses: empty rows the length of the answer.
       for (let r = guesses.length + 1; r < MAX_GUESSES; r++) {
         const row = document.createElement("div");
         row.className = "row";
-        row.appendChild(tile("", "future"));
+        for (let i = 0; i < answer.length; i++) row.appendChild(tile("", "empty"));
         boardEl.appendChild(row);
       }
     }
@@ -243,7 +234,7 @@ if (typeof document !== "undefined") {
   }
 
   function addChar(ch) {
-    if (over || PREFIX.length + current.length >= MAX_LENGTH) return;
+    if (over || PREFIX.length + current.length >= answer.length) return;
     current += ch;
     render("add");
   }
@@ -256,9 +247,9 @@ if (typeof document !== "undefined") {
 
   function submit() {
     if (over) return;
-    if (!current) {
-      showToast("Type the rest of the word after CS2");
-      setTimeout(() => !over && toastEl.textContent.startsWith("Type") && showToast(""), 1500);
+    if (PREFIX.length + current.length < answer.length) {
+      showToast("Not enough letters");
+      setTimeout(() => !over && toastEl.textContent === "Not enough letters" && showToast(""), 1500);
       shakeCurrentRow();
       return;
     }

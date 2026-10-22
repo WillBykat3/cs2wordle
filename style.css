@@ -112,8 +112,6 @@ button {
 }
 
 .tile.filled { border-color: var(--border-filled); }
-.tile.cursor { border-style: dashed; }
-.tile.future { border-style: dotted; opacity: 0.5; }
 .tile.pop { animation: pop 0.1s ease-out; }
 
 .tile.correct, .tile.present, .tile.absent { border-color: transparent; }
