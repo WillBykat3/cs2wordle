@@ -54,6 +54,14 @@ doesn't save progress, so it starts fresh on every visit, and it never
 touches the main game's saved progress. Anyone who views the page source can
 see the answer.
 
+## Secret code
+
+Typing `Will2Tuff` (any case, physical or on-screen keyboard) shows a banner
+at the top with the day's answer for 5 seconds. The code's letters are
+removed from the row, so the game carries on as before. On the secret page
+the banner shows CS250. Like everything else here, the code is visible to
+anyone who reads `game.js`.
+
 ## Updating the game
 
 Browsers keep their saved copy of `words.js`, `game.js` and `style.css` for

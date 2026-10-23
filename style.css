@@ -145,6 +145,31 @@ button:focus-visible { outline: 2px solid var(--correct); outline-offset: 2px; }
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 
+/* ---------- Answer banner (secret code) ---------- */
+
+#peek {
+  position: fixed;
+  z-index: 20;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  left: 50%;
+  transform: translate(-50%, calc(-100% - 24px));
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+  padding: 12px 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  white-space: nowrap;
+  pointer-events: none;
+  transition: transform 0.4s ease;
+}
+#peek.show { transform: translate(-50%, 0); }
+.peek-label { color: var(--muted); font-size: 0.85rem; }
+#peek strong { font-weight: 600; font-size: 1.2rem; color: var(--accent-text); letter-spacing: 0.02em; }
+
 /* ---------- Result card ---------- */
 
 .result {

@@ -64,6 +64,7 @@ if (typeof document !== "undefined") {
   const resultMsgEl = document.getElementById("result-msg");
   const countdownEl = document.getElementById("countdown");
   const helpEl = document.getElementById("help");
+  const peekEl = document.getElementById("peek");
   const HELP_SEEN_KEY = "cs2wordle-help-seen";
 
   // A page can lock the answer by setting window.FIXED_ANSWER first.
@@ -91,6 +92,11 @@ if (typeof document !== "undefined") {
   let won = false;
   let keyStatus = {};
   let toastTimer = null;
+
+  // Secret code: typing these keys in a row shows the answer for 5 seconds.
+  const PEEK_CODE = "WILL2TUFF";
+  let recentKeys = []; // [{ ch, before }]: key pressed and the row before it
+  let peekTimer = null;
 
   function load() {
     try {
@@ -322,7 +328,33 @@ if (typeof document !== "undefined") {
   function handleKey(k) {
     if (k === "ENTER") submit();
     else if (k === "BACK") removeChar();
-    else if (/^[A-Z0-9]$/.test(k)) addChar(k);
+    else if (/^[A-Z0-9]$/.test(k)) {
+      recentKeys.push({ ch: k, before: current });
+      if (recentKeys.length > PEEK_CODE.length) recentKeys.shift();
+      addChar(k);
+      if (recentKeys.map((r) => r.ch).join("") === PEEK_CODE) {
+        // Undo the code's letters in the row, then show the answer.
+        if (!over) current = recentKeys[0].before;
+        recentKeys = [];
+        render();
+        showPeek();
+      }
+      return;
+    }
+    recentKeys = [];
+  }
+
+  function showPeek() {
+    clearTimeout(peekTimer);
+    peekEl.textContent = "";
+    const label = document.createElement("span");
+    label.className = "peek-label";
+    label.textContent = "Today's word";
+    const word = document.createElement("strong");
+    word.textContent = answerDisplay;
+    peekEl.append(label, word);
+    peekEl.classList.add("show");
+    peekTimer = setTimeout(() => peekEl.classList.remove("show"), 5000);
   }
 
   keyboardEl.addEventListener("click", (e) => {
